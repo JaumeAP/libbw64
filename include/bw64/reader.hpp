@@ -195,6 +195,21 @@ namespace bw64 {
     std::shared_ptr<AxmlChunk> axmlChunk() const {
       return chunk<AxmlChunk>(chunks_, utils::fourCC("axml"));
     }
+    /**
+     * @brief Get the first chunk with the given id that this library does not
+     * interpret
+     *
+     * Any chunk other than 'ds64', 'fmt ', 'data', 'axml' and 'chna' is kept as
+     * an UnknownChunk; this returns it so its payload can be read, for example
+     * a 'bext' or a vendor chunk.
+     *
+     * @returns `std::shared_ptr` to UnknownChunk if present and otherwise a
+     * nullptr.
+     */
+    std::shared_ptr<UnknownChunk> unknownChunk(uint32_t chunkId) const {
+      return std::dynamic_pointer_cast<UnknownChunk>(
+          chunk<Chunk>(chunks_, chunkId));
+    }
 
     /**
      * @brief Get list of all chunks which are present in the file

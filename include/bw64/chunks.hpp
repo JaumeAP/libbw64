@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <stdint.h>
 #include <string>
+#include <utility>
 #include <vector>
 #include "utils.hpp"
 
@@ -57,6 +58,9 @@ namespace bw64 {
   class UnknownChunk : public Chunk {
    public:
     UnknownChunk(uint32_t id) { chunkId_ = id; }
+    /// @brief Create a chunk with the given id and payload
+    UnknownChunk(uint32_t id, std::vector<char> data)
+        : chunkId_(id), data_(std::move(data)) {}
     UnknownChunk(std::istream& stream, uint32_t id, uint64_t size) {
       chunkId_ = id;
       data_.resize(size);
@@ -65,6 +69,8 @@ namespace bw64 {
 
     uint32_t id() const override { return chunkId_; }
     uint64_t size() const override { return data_.size(); }
+    /// @brief Get the payload of the chunk
+    const std::vector<char>& data() const { return data_; }
 
     void write(std::ostream& stream) const override {
       std::copy(data_.begin(), data_.end(),

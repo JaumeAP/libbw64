@@ -290,6 +290,43 @@ TEST_CASE("write_read_odd_chunks_after") {
   }
 }
 
+TEST_CASE("write_read_unknown_chunks") {
+  int frames = 13;
+  // odd sizes on purpose: the writer pads, the reader must not return the pad
+  const std::vector<char> before = {'a', 'b', 'c'};
+  const std::vector<char> after = {'x', 'y', 'z', 'w', 'v'};
+
+  {
+    std::vector<float> data(frames, 0.5);
+    std::vector<std::shared_ptr<Chunk>> chunksBeforeData = {
+        std::make_shared<UnknownChunk>(utils::fourCC("pre "), before)};
+    Bw64Writer writer("write_read_unknown_chunks.wav", 1, 48000, 24,
+                      chunksBeforeData);
+    writer.setAxmlChunk(
+        std::make_shared<UnknownChunk>(utils::fourCC("dbmd"), after));
+    writer.write(&data[0], frames);
+    writer.close();
+  }
+
+  {
+    auto reader = readFile("write_read_unknown_chunks.wav");
+    REQUIRE(reader->numberOfFrames() == frames);
+
+    auto pre = reader->unknownChunk(utils::fourCC("pre "));
+    REQUIRE(pre);
+    REQUIRE(pre->data() == before);
+
+    auto dbmd = reader->unknownChunk(utils::fourCC("dbmd"));
+    REQUIRE(dbmd);
+    REQUIRE(dbmd->data() == after);
+
+    // absent, and chunks the library interprets itself, give nullptr
+    REQUIRE(!reader->unknownChunk(utils::fourCC("none")));
+    REQUIRE(!reader->unknownChunk(utils::fourCC("fmt ")));
+    REQUIRE(!reader->unknownChunk(utils::fourCC("data")));
+  }
+}
+
 TEST_CASE("write_read_big", "[.big]") {
   uint64_t frames = 0x90000000UL;
   uint64_t blockSize = 0x1000UL;
