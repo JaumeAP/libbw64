@@ -10,6 +10,7 @@ This version fixes a number of buffer overruns, integer overflows, and uses of u
 - new CMake option `BW64_PACKAGE_AND_INSTALL`
 - `AxmlChunk::data()`; this allows access to the internal string, avoiding a copy when reading
 - `Bw64Writer::close()`; this should be called before destruction to properly catch exceptions
+- `Bw64Reader::unknownChunk()`, `UnknownChunk::data()` and an `UnknownChunk` constructor taking the payload; this allows reading and writing chunks the library does not interpret, such as `bext` or vendor chunks
 
 ### Changed
 
